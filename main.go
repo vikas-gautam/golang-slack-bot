@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/slack-go/slack"
@@ -104,7 +103,6 @@ func main() {
 
 }
 
-
 // handleEventMessage will take an event and handle it properly based on the type of event
 func handleEventMessage(event slackevents.EventsAPIEvent, client *slack.Client) error {
 	switch event.Type {
@@ -140,30 +138,35 @@ func handleAppMentionEvent(event *slackevents.AppMentionEvent, client *slack.Cli
 
 	// Create the attachment and assigned based on the message
 	attachment := slack.Attachment{}
+	attachment_leave := slack.Attachment{}
+	attachment_final := slack.Attachment{}
 	// Add Some default context like user who mentioned the bot
-	attachment.Fields = []slack.AttachmentField{
+	attachment_leave.Fields = []slack.AttachmentField{
 		{
-			Title: "Date",
-			Value: time.Now().String(),
-		}, {
-			Title: "Initializer",
+			Title: "Leave format",
+			Value: fmt.Sprintln("Reason:		\nno. of days:		\nDate From:	To Date:		\nDay:		\ncc:		\nAppliedOnPortal:		\n"),
+		},
+		{
+			Title: "Applicant",
 			Value: user.Name,
 		},
 	}
-	if strings.Contains(text, "hello") {
+	if strings.Contains(text, "leave") {
 		// Greet the user
-		attachment.Text = fmt.Sprintf("Hello %s", user.Name)
-		attachment.Pretext = "Greetings"
-		attachment.Color = "#4af030"
+		attachment_leave.Text = fmt.Sprintln("Hope you are doing well, Please send leave info in below format")
+		attachment_leave.Pretext = "Greetings Opstrian" //heading
+		attachment_leave.Color = "#4af030"
+		attachment_final = attachment_leave
 	} else {
 		// Send a message to the user
 		attachment.Text = fmt.Sprintf("How can I help you %s?", user.Name)
 		attachment.Pretext = "How can I be of service"
 		attachment.Color = "#3d3d3d"
+		attachment_final = attachment
 	}
 	// Send the message to the channel
 	// The Channel is available in the event message
-	_, _, err = client.PostMessage(event.Channel, slack.MsgOptionAttachments(attachment))
+	_, _, err = client.PostMessage(event.Channel, slack.MsgOptionAttachments(attachment_final))
 	if err != nil {
 		return fmt.Errorf("failed to post message: %w", err)
 	}
